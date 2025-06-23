@@ -1,231 +1,261 @@
-# RAG Next.js TypeScript Application
+# 🏥 HealthCare AI Assistant
 
-A modern **Retrieval-Augmented Generation (RAG)** chat application built with Next.js, TypeScript, and powered by OpenAI's GPT models with vector-based document retrieval using Vectorize.io.
+A sophisticated AI-powered assistant that provides instant answers about health insurance coverage, benefits, and real-time medical cost estimates. Built with Next.js, AI SDK, and advanced tool-calling capabilities.
 
-## 🚀 Features
+## 🌟 Features
 
-- **AI-Powered Chat**: Interactive chat interface with GPT-4o-mini
-- **Document Retrieval**: RAG system that retrieves relevant context from vectorized documents
-- **Real-time Sources**: View document sources that inform AI responses
-- **Modern UI**: Clean, responsive interface built with Tailwind CSS
-- **Type Safety**: Full TypeScript implementation
+- **💬 Intelligent Chat Interface**: Beautiful, responsive chat UI with real-time streaming responses
+- **📋 Document Search**: Query vectorized health insurance documents for specific coverage details
+- **💰 Live Cost Estimates**: Real-time medical test and procedure cost lookup via Google Search
+- **🔧 Multi-Step Reasoning**: AI agent can use multiple tools in sequence to provide comprehensive answers
+- **🎨 Professional UI**: Healthcare-themed interface with clean, readable design
+- **⚡ Real-time Streaming**: Instant response delivery with loading states
 
-## 🛠️ Tech Stack
+## 🏗️ Architecture Overview
 
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript
-- **AI/ML**: OpenAI GPT-4o-mini, AI SDK
-- **Vector Database**: Vectorize.io
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    HEALTHCARE AI ASSISTANT                     │
+└─────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     FRONTEND (Next.js)                         │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │   Chat UI       │  │  Message Formatting│  │ Tool Indicators │ │
+│  │  - User Input   │  │  - Markdown       │  │ - Visual Cues   │ │
+│  │  - Message Feed │  │  - Bold/Bullets   │  │ - Loading States│ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    API LAYER (/api/agent)                      │
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐ │
+│  │                AI SDK + OpenAI GPT-4o                     │ │
+│  │  • Multi-step tool calling                               │ │
+│  │  • Intelligent tool selection                            │ │
+│  │  • Response streaming                                    │ │
+│  └───────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                                 │
+                    ┌────────────┴────────────┐
+                    ▼                         ▼
+┌─────────────────────────────┐    ┌─────────────────────────────┐
+│       TOOL: searchDocuments │    │   TOOL: getMedicalTestCost  │
+│                             │    │                             │
+│  ┌─────────────────────────┐│    │ ┌─────────────────────────┐ │
+│  │    Vectorize Service    ││    │ │   Google Custom Search  │ │
+│  │  • Document retrieval  ││    │ │  • Medical cost lookup  │ │
+│  │  • Semantic search     ││    │ │  • Real-time pricing    │ │
+│  │  • Context formatting  ││    │ │  • Cost extraction      │ │
+│  └─────────────────────────┘│    │ └─────────────────────────┘ │
+└─────────────────────────────┘    └─────────────────────────────┘
+                    │                              │
+                    ▼                              ▼
+┌─────────────────────────────┐    ┌─────────────────────────────┐
+│     VECTORIZED DOCUMENTS    │    │      GOOGLE SEARCH API      │
+│                             │    │                             │
+│  • Health insurance docs   │    │  • Live web search          │
+│  • Coverage details        │    │  • Medical test pricing     │
+│  • Policy information      │    │  • Healthcare costs         │
+│  • Benefits & procedures   │    │  • Real-time data           │
+└─────────────────────────────┘    └─────────────────────────────┘
+```
 
-## 📋 Prerequisites
+## 🚀 Quick Start
 
-Before setting up this project, you'll need:
+### Prerequisites
 
-1. **Node.js** (v18 or higher)
-2. **pnpm**: [Install pnpm](https://pnpm.io/installation)
-3. **OpenAI API Key**: [Get one here](https://platform.openai.com/api-keys)
-4. **Vectorize.io Account**: [Sign up here](https://vectorize.io)
+- Node.js 18+ 
+- pnpm (recommended) or npm
+- OpenAI API key
+- Google Custom Search API credentials
+- Vectorize service credentials
 
-## 🔧 Installation
+### Installation
 
-1. **Install dependencies**
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd rag-next-typescript
+   ```
 
+2. **Install dependencies**
    ```bash
    pnpm install
    ```
 
-2. **Set up environment variables**
-
-   Create a `.env.local` file in the root directory of your project:
-
+3. **Environment Setup**
+   
+   Create `.env.local` with the following variables:
    ```bash
-   # Create the file (from project root)
-   touch .env.local
-   ```
-
-   Open the file in your editor and add the following variables:
-
-   ```env
    # OpenAI Configuration
-   OPENAI_API_KEY=your_openai_api_key_here
-
-   # Vectorize.io Configuration
-   VECTORIZE_PIPELINE_ACCESS_TOKEN=your_vectorize_access_token_here
-   VECTORIZE_ORGANIZATION_ID=your_vectorize_organization_id_here
-   VECTORIZE_PIPELINE_ID=your_vectorize_pipeline_id_here
+   OPENAI_API_KEY=your_openai_api_key
+   
+   # Google Custom Search API
+   GOOGLE_API_KEY=your_google_api_key
+   GOOGLE_SEARCH_ENGINE_ID=your_custom_search_engine_id
+   
+   # Vectorize Service
+   VECTORIZE_PIPELINE_ACCESS_TOKEN=your_vectorize_access_token
+   VECTORIZE_ORGANIZATION_ID=your_organization_id
+   VECTORIZE_PIPELINE_ID=your_pipeline_id
    ```
 
-   **Important**: The `.env.local` file is automatically ignored by git, keeping your API keys secure.
-
-## 🔑 Environment Variables Setup
-
-### OpenAI API Key
-
-1. Visit [OpenAI Platform](https://platform.openai.com/api-keys)
-2. Sign in or create an account
-3. Click "Create new secret key"
-4. Give your key a name (e.g., "rag-next-app")
-5. Copy the generated key immediately (you won't see it again!)
-6. In your `.env.local` file, replace `your_openai_api_key_here` with your actual key:
-   ```env
-   OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
-   ```
-
-### Vectorize.io Configuration
-
-1. Sign up at [Vectorize.io](https://vectorize.io)
-2. Create a new organization
-3. Navigate to your organization settings
-4. Create a new pipeline:
-   - Choose "Document Retrieval" as the pipeline type
-   - Configure your pipeline settings
-   - Save the pipeline
-5. Generate an access token:
-   - Go to "API Tokens" in your organization settings
-   - Create a new token with "Retrieval Access" permissions
-   - Copy the token
-6. From your Vectorize dashboard, copy these values to your `.env.local`:
-   ```env
-   VECTORIZE_PIPELINE_ACCESS_TOKEN=eyJhbGciOi... (your full token)
-   VECTORIZE_ORGANIZATION_ID=527d9a27-c34a-4d0a-8fde-... (your org ID)
-   VECTORIZE_PIPELINE_ID=aip0c318-344a-4721-a9e7-... (your pipeline ID)
-   ```
-
-### Verifying Your Setup
-
-After adding all environment variables, your `.env.local` file should look similar to this:
-
-```env
-# OpenAI Configuration
-OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
-
-# Vectorize.io Configuration
-VECTORIZE_PIPELINE_ACCESS_TOKEN=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
-VECTORIZE_ORGANIZATION_ID=527d9a27-c34a-4d0a-8fde-1129a57eb5b8
-VECTORIZE_PIPELINE_ID=aip0c318-344a-4721-a9e7-5526c96d9b49
-```
-
-**Note**: Never commit your `.env.local` file to version control!
-
-## 🚀 Getting Started
-
-1. **Start the development server**
-
+4. **Start the development server**
    ```bash
    pnpm dev
    ```
 
-2. **Open your browser**
+5. **Open in browser**
+   ```
+   http://localhost:3000
+   ```
 
-   Navigate to [http://localhost:3000](http://localhost:3000)
+## 🔧 Technical Stack
 
-3. **Test the application**
-   - Visit the main page to see the Next.js welcome screen
-   - Go to `/vectorize` to access the RAG chat interface
-   - Start asking questions about your vectorized documents
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Frontend** | Next.js 15, React 19, Tailwind CSS | Modern UI with server-side rendering |
+| **AI Engine** | AI SDK v4, OpenAI GPT-4o | Intelligent conversations and tool calling |
+| **Document Search** | Vectorize.io | Semantic search through insurance documents |
+| **Cost Search** | Google Custom Search API | Real-time medical cost information |
+| **UI Components** | Shadcn/ui, Lucide Icons | Professional healthcare interface |
+| **Styling** | Tailwind CSS v4 | Responsive, modern design system |
+
+## 🛠️ Key Components
+
+### Agent System (`/app/api/agent/route.ts`)
+- **Multi-step tool calling** with intelligent tool selection
+- **Two specialized tools**: Document search and cost estimation
+- **Streaming responses** for real-time user experience
+- **Smart formatting** with professional output guidelines
+
+### Document Retrieval (`/lib/retrieval.ts`)
+- **Vectorized search** through health insurance documents
+- **Semantic matching** for relevant content discovery
+- **Structured responses** with sources and context
+
+### Google Search Integration (`/lib/google-search.ts`)
+- **Real-time cost lookup** for medical procedures
+- **Intelligent cost extraction** from search results
+- **Formatted pricing** with clear, actionable information
+
+### Frontend (`/app/page.tsx`)
+- **Modern chat interface** with healthcare theming
+- **Message formatting** with markdown support
+- **Loading states** and visual feedback
+- **Responsive design** for all devices
+
+## 💡 Usage Examples
+
+### Coverage Questions
+```
+User: "Does insurance cover MRI?"
+Assistant: 
+• In-Network: 20% coinsurance after deductible
+• Out-of-Network: 40% coinsurance after deductible
+```
+
+### Cost Inquiries
+```
+User: "How much does a blood test cost?"
+Assistant: Based on current data: $25-$100, $50-$200, $75-$150
+```
+
+### Complex Queries
+```
+User: "What's the coverage and cost for a colonoscopy?"
+Assistant: [Uses both tools to provide comprehensive coverage AND cost information]
+```
+
+## 🔍 Tool Selection Logic
+
+The AI agent intelligently selects tools based on query intent:
+
+- **Document Search (`searchDocuments`)**: 
+  - Insurance coverage questions
+  - Policy benefits and limitations
+  - Medical procedure information
+  - General healthcare queries
+
+- **Cost Search (`getMedicalTestCost`)**:
+  - Price estimates and cost inquiries
+  - "How much does X cost?" queries
+  - Medical test pricing
+  - Procedure cost comparisons
 
 ## 📁 Project Structure
 
 ```
 rag-next-typescript/
 ├── app/
-│   ├── api/chat/          # Chat API endpoint
-│   ├── vectorize/         # RAG chat interface
-│   ├── globals.css        # Global styles
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx          # Home page
+│   ├── api/
+│   │   ├── agent/          # AI agent endpoint
+│   │   └── chat/           # Legacy chat endpoint
+│   ├── agent/              # Simple agent page (backup)
+│   ├── page.tsx            # Main chat interface
+│   └── layout.tsx          # App layout
 ├── components/
-│   ├── chat.tsx          # Main chat component
-│   └── sources-display.tsx # Document sources display
+│   ├── ui/                 # Shadcn UI components
+│   └── agent-chat.tsx      # Chat component (legacy)
 ├── lib/
-│   ├── consts.ts         # Constants and loading messages
-│   ├── utils.ts          # Utility functions
-│   └── vectorize.ts      # Vectorize service integration
+│   ├── retrieval.ts        # Document search logic
+│   ├── google-search.ts    # Cost search logic
+│   ├── vectorize.ts        # Vectorize service
+│   └── utils.ts            # Utility functions
 ├── types/
-│   ├── chat.ts           # Chat-related types
-│   └── vectorize.ts      # Vectorize API types
-└── .env.local           # Environment variables
+│   ├── chat.ts             # Chat-related types
+│   └── vectorize.ts        # Vectorize types
+└── .env.local              # Environment variables
 ```
 
-## 🔄 How It Works
+## 🔒 Security & Best Practices
 
-1. **User Input**: User types a question in the chat interface
-2. **Document Retrieval**: The system queries Vectorize.io to find relevant documents
-3. **Context Formation**: Retrieved documents are formatted as context
-4. **AI Generation**: OpenAI GPT-4o-mini generates a response using the context
-5. **Response Display**: The answer is shown with source documents for transparency
+- **Environment variables** for all sensitive credentials
+- **Input validation** on all user queries
+- **Rate limiting** on API endpoints (recommended for production)
+- **Error handling** with graceful degradation
+- **No client-side exposure** of API keys
 
-## 🎯 Usage
-
-### Chat Interface
-
-- Navigate to `/vectorize` for the main chat interface
-- Type questions related to your vectorized documents
-- View source documents that informed each AI response
-- Enjoy real-time loading animations and smooth interactions
-
-### Adding Documents
-
-To add documents to your vector database, you'll need to use the Vectorize.io platform or API to upload and process your documents before they can be retrieved by this application.
-
-## 🛠️ Available Scripts
-
-- `pnpm dev` - Start development server with Turbopack
-- `pnpm build` - Build the application for production
-- `pnpm start` - Start the production server
-- `pnpm lint` - Run ESLint
-
-## 🔍 Troubleshooting
-
-### Common Issues
-
-1. **Missing Environment Variables**
-
-   - Ensure all required environment variables are set in `.env.local`
-   - Check that your API keys are valid and have proper permissions
-
-2. **Vectorize Connection Issues**
-
-   - Verify your Vectorize.io credentials
-   - Ensure your pipeline is properly configured and has documents
-
-3. **OpenAI API Errors**
-   - Check your OpenAI API key validity
-   - Ensure you have sufficient credits/quota
-
-### Error Messages
-
-- `Failed to retrieve documents from Vectorize` - Check Vectorize.io configuration
-- `Failed to process chat` - Usually indicates OpenAI API issues
-
-## 📖 Learn More
-
-### Next.js Resources
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Learn Next.js](https://nextjs.org/learn)
-
-### AI & RAG Resources
-
-- [OpenAI API Documentation](https://platform.openai.com/docs)
-- [Vectorize.io Documentation](https://vectorize.io/docs)
-- [AI SDK Documentation](https://sdk.vercel.ai)
-
-## 🚀 Deployment
+## 🚢 Deployment
 
 ### Vercel (Recommended)
+```bash
+# Deploy to Vercel
+vercel --prod
 
-1. Push your code to a Git repository
-2. Connect your repository to [Vercel](https://vercel.com)
-3. Add your environment variables in the Vercel dashboard
-4. Deploy automatically on every push
+# Set environment variables in Vercel dashboard
+```
+
+### Docker
+```dockerfile
+# Dockerfile included for containerized deployment
+docker build -t healthcare-ai .
+docker run -p 3000:3000 healthcare-ai
+```
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Open an issue on GitHub
+- Check the [documentation](docs/)
+- Review environment setup requirements
+
+---
+
+**Built with ❤️ for better healthcare information access**

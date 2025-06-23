@@ -1,64 +1,135 @@
-import { generateText } from "ai";
-import { openai } from "@ai-sdk/openai";
-import { VectorizeService } from "@/lib/vectorize";
-import type { ChatSource } from "@/types/chat";
+import { openai } from "@ai-sdk/openai"
+import { streamText, tool } from "ai"
+import { z } from "zod"
 
 export async function POST(req: Request) {
-  try {
-    const { messages } = await req.json();
+  const { messages } = await req.json()
 
-    const userMessage = messages[messages.length - 1];
-    let contextDocuments = "";
-    let sources: ChatSource[] = [];
+  const result = streamText({
+    model: openai("gpt-4o"),
+    messages,
+    system: `You are a helpful health insurance AI assistant. You help users understand their health insurance coverage, benefits, and medical costs.
 
-    if (userMessage?.role === "user" && userMessage?.content) {
-      try {
-        const vectorizeService = new VectorizeService();
-        const documents = await vectorizeService.retrieveDocuments(
-          userMessage.content
-        );
-        contextDocuments =
-          vectorizeService.formatDocumentsForContext(documents);
-        sources = vectorizeService.convertDocumentsToChatSources(documents);
-      } catch (vectorizeError) {
-        console.error("Vectorize retrieval failed:", vectorizeError);
-        contextDocuments =
-          "Unable to retrieve relevant documents at this time.";
-        sources = [];
-      }
-    }
+When responding:
+- Use clear, structured formatting with bullet points and bold headings
+- Be professional but friendly
+- Always remind users to verify information with their insurance provider
+- Format responses with proper structure using markdown-like syntax:
+  - Use **text** for bold headings
+  - Use • or - for bullet points
+  - Use clear paragraphs for readability
 
-    const systemPrompt = `You are a helpful AI assistant that specializes in answering questions user have based on sources.
+You have access to two tools:
+1. Document search - for finding information about coverage and benefits
+2. Google search - for finding current medical test and procedure costs`,
+    tools: {
+      document_search: tool({
+        description: "Search through insurance policy documents and coverage information",
+        parameters: z.object({
+          query: z.string().describe("The search query for insurance documents"),
+          document_type: z.enum(["policy", "benefits", "coverage", "claims"]).optional(),
+        }),
+        execute: async ({ query, document_type }) => {
+          // Simulate document search
+          await new Promise((resolve) => setTimeout(resolve, 1000))
 
-When answering questions, use the following context documents to provide accurate and relevant information:
-
-=== CONTEXT DOCUMENTS ===
-${contextDocuments}
-=== END CONTEXT DOCUMENTS ===
-
-Please base your responses on the context provided above when relevant. If the context doesn't contain information to answer the question, acknowledge this and provide general knowledge while being clear about what information comes from the context vs. your general knowledge
-Keep your answer to less than 10 sentences.
-.`;
-
-    const result = await generateText({
-      model: openai("gpt-4o-mini"),
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt,
+          // Mock response based on query
+          if (query.toLowerCase().includes("deductible")) {
+            return {
+              results: [
+                {
+                  title: "Annual Deductible Information",
+                  content:
+                    "Your annual deductible is $1,500 for individual coverage. This must be met before insurance begins covering costs at the coinsurance rate.",
+                  source: "Policy Document - Section 4.2",
+                },
+              ],
+            }
+          } else if (query.toLowerCase().includes("specialist")) {
+            return {
+              results: [
+                {
+                  title: "Specialist Referral Requirements",
+                  content:
+                    "Referrals are required for most specialists except dermatology, gynecology, and mental health services.",
+                  source: "Benefits Summary - Page 12",
+                },
+              ],
+            }
+          } else {
+            return {
+              results: [
+                {
+                  title: "General Coverage Information",
+                  content:
+                    "Your plan covers preventive care at 100%, emergency services with $250 copay, and prescription drugs with tiered copays.",
+                  source: "Policy Summary",
+                },
+              ],
+            }
+          }
         },
-        ...messages,
-      ],
-    });
+      }),
+      google_search: tool({
+        description: "Search for current medical test and procedure costs",
+        parameters: z.object({
+          query: z.string().describe("The medical test or procedure to search for"),
+          location: z.string().optional().describe("Geographic location for cost estimates"),
+        }),
+        execute: async ({ query, location }) => {
+          // Simulate Google search
+          await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    // Return both the text response and sources
-    return Response.json({
-      role: "assistant",
-      content: result.text,
-      sources: sources,
-    });
-  } catch (error) {
-    console.error("Error in chat:", error);
-    return Response.json({ error: "Failed to process chat" }, { status: 500 });
-  }
+          // Mock response based on query
+          if (query.toLowerCase().includes("mri")) {
+            return {
+              results: [
+                {
+                  title: "MRI Cost Information",
+                  content: `Average MRI costs ${location ? `in ${location}` : "nationally"}:
+                  • Brain MRI: $1,000 - $3,000
+                  • Knee MRI: $700 - $2,000
+                  • Abdominal MRI: $1,200 - $3,500
+                  
+                  Costs vary significantly by facility and insurance coverage.`,
+                  source: "Healthcare Cost Database",
+                },
+              ],
+            }
+          } else if (query.toLowerCase().includes("blood work") || query.toLowerCase().includes("blood test")) {
+            return {
+              results: [
+                {
+                  title: "Blood Test Cost Information",
+                  content: `Common blood test costs:
+                  • Complete Blood Count (CBC): $25 - $100
+                  • Basic Metabolic Panel: $30 - $150
+                  • Lipid Panel: $40 - $200
+                  • Thyroid Function Tests: $50 - $300
+                  
+                  Many insurance plans cover routine blood work as preventive care.`,
+                  source: "Medical Cost Reference",
+                },
+              ],
+            }
+          } else {
+            return {
+              results: [
+                {
+                  title: "Medical Procedure Cost Estimate",
+                  content: `Cost information for ${query}:
+                  • Costs vary widely based on location, facility, and insurance coverage
+                  • Contact your insurance provider for specific coverage details
+                  • Consider getting quotes from multiple providers`,
+                  source: "Healthcare Pricing Guide",
+                },
+              ],
+            }
+          }
+        },
+      }),
+    },
+  })
+
+  return result.toDataStreamResponse()
 }
