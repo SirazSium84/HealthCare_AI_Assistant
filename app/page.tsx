@@ -1,7 +1,7 @@
 "use client"
 
 import { useChat } from "ai/react"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Send, FileSearch, Search, Bot, User, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,12 @@ export default function HealthInsuranceChat() {
   })
 
   const [activeTools, setActiveTools] = useState<string[]>([])
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to bottom when new messages are added
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages, isLoading])
 
   const formatMessage = (content: string) => {
     // Convert markdown-like formatting to JSX
@@ -114,8 +120,9 @@ export default function HealthInsuranceChat() {
           <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-2xl">
             <div className="h-[600px] flex flex-col">
               {/* Messages Area */}
-              <ScrollArea className="flex-1 p-6">
-                <div className="space-y-6">
+              <div className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full p-6">
+                  <div className="space-y-6">
                   {messages.length === 0 && (
                     <div className="text-center py-12">
                       <Bot className="h-16 w-16 text-blue-600 mx-auto mb-4" />
@@ -201,8 +208,12 @@ export default function HealthInsuranceChat() {
                       </div>
                     </div>
                   )}
-                </div>
-              </ScrollArea>
+                  
+                  {/* Scroll target */}
+                  <div ref={messagesEndRef} />
+                  </div>
+                </ScrollArea>
+              </div>
 
               {/* Input Area */}
               <div className="border-t border-gray-200 p-6">
