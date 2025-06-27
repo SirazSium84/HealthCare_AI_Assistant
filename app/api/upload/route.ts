@@ -55,12 +55,10 @@ async function extractTextFromFile(file: File): Promise<string> {
       throw new Error('DOCX parsing not implemented yet. Please use .txt files for now.')
     } else if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
       // Plain text file
-      const text = await file.text()
-      return text
+      return await file.text();
     } else {
       // Try to read as text anyway
-      const text = await file.text()
-      return text
+      return await file.text();
     }
   } catch (error) {
     console.error('Text extraction error:', error)
@@ -80,7 +78,9 @@ function chunkDocument(text: string, filename: string) {
     const chunk = text.slice(i, i + chunkSize)
     
     // Skip very small chunks at the end
-    if (chunk.trim().length < 50) continue
+    if (chunk.trim().length < 50) {
+      continue
+    }
     
     chunks.push({
       text: chunk.trim(),

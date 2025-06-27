@@ -130,7 +130,9 @@ export default function HealthInsuranceChat() {
   ]
 
   const handleFileUpload = async (file: File) => {
-    if (!file) return
+    if (!file) {
+      return
+    }
     
     setUploading(true)
     setUploadStatus(`Uploading ${file.name}...`)
