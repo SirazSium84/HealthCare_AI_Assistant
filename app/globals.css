@@ -45,75 +45,84 @@
 
 :root {
   --radius: 1rem;
-  /* Healthcare AI Dark Theme */
-  --background: hsl(240 10% 3.9%);
+  /* Professional Healthcare Theme */
+  --background: hsl(220 15% 4%);
   --foreground: hsl(0 0% 98%);
-  --card: hsl(240 10% 5%);
+  --card: hsl(220 13% 6%);
   --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(240 5% 15%);
+  --popover: hsl(220 10% 12%);
   --popover-foreground: hsl(0 0% 98%);
-  --primary: hsl(221 83% 53%);
+  --primary: hsl(213 85% 58%);
   --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(240 5% 24%);
-  --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(240 5% 24%);
-  --muted-foreground: hsl(240 5% 65%);
-  --accent: hsl(240 4% 46%);
+  --secondary: hsl(220 8% 22%);
+  --secondary-foreground: hsl(0 0% 95%);
+  --muted: hsl(220 8% 20%);
+  --muted-foreground: hsl(220 5% 65%);
+  --accent: hsl(213 30% 40%);
   --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 72% 51%);
+  --destructive: hsl(0 68% 56%);
   --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 6% 42%);
-  --input: hsl(240 6% 20%);
-  --ring: hsl(221 83% 53%);
-  --chart-1: hsl(221 83% 53%);
-  --chart-2: hsl(212 95% 68%);
-  --chart-3: hsl(216 92% 60%);
-  --chart-4: hsl(210 98% 78%);
-  --chart-5: hsl(212 97% 87%);
-  --sidebar: hsl(240 10% 5%);
+  --border: hsl(220 13% 35%);
+  --input: hsl(220 13% 15%);
+  --ring: hsl(213 85% 58%);
+  --chart-1: hsl(213 85% 58%);
+  --chart-2: hsl(206 95% 68%);
+  --chart-3: hsl(200 92% 60%);
+  --chart-4: hsl(194 98% 78%);
+  --chart-5: hsl(188 97% 87%);
+  --sidebar: hsl(220 15% 5%);
   --sidebar-foreground: hsl(0 0% 98%);
-  --sidebar-primary: hsl(221 83% 53%);
+  --sidebar-primary: hsl(213 85% 58%);
   --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 5% 24%);
+  --sidebar-accent: hsl(220 8% 22%);
   --sidebar-accent-foreground: hsl(0 0% 98%);
-  --sidebar-border: hsl(240 6% 42%);
-  --sidebar-ring: hsl(221 83% 53%);
+  --sidebar-border: hsl(220 13% 35%);
+  --sidebar-ring: hsl(213 85% 58%);
+  
+  /* Professional spacing and shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
 }
 
 .dark {
-  /* Override with same dark theme values */
-  --background: hsl(240 10% 3.9%);
+  /* Same professional dark theme values */
+  --background: hsl(220 15% 4%);
   --foreground: hsl(0 0% 98%);
-  --card: hsl(240 10% 5%);
+  --card: hsl(220 13% 6%);
   --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(240 5% 15%);
+  --popover: hsl(220 10% 12%);
   --popover-foreground: hsl(0 0% 98%);
-  --primary: hsl(221 83% 53%);
+  --primary: hsl(213 85% 58%);
   --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(240 5% 24%);
-  --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(240 5% 24%);
-  --muted-foreground: hsl(240 5% 65%);
-  --accent: hsl(240 4% 46%);
+  --secondary: hsl(220 8% 22%);
+  --secondary-foreground: hsl(0 0% 95%);
+  --muted: hsl(220 8% 20%);
+  --muted-foreground: hsl(220 5% 65%);
+  --accent: hsl(213 30% 40%);
   --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 72% 51%);
+  --destructive: hsl(0 68% 56%);
   --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 6% 42%);
-  --input: hsl(240 6% 20%);
-  --ring: hsl(221 83% 53%);
-  --chart-1: hsl(221 83% 53%);
-  --chart-2: hsl(212 95% 68%);
-  --chart-3: hsl(216 92% 60%);
-  --chart-4: hsl(210 98% 78%);
-  --chart-5: hsl(212 97% 87%);
-  --sidebar: hsl(240 10% 5%);
+  --border: hsl(220 13% 35%);
+  --input: hsl(220 13% 15%);
+  --ring: hsl(213 85% 58%);
+  --chart-1: hsl(213 85% 58%);
+  --chart-2: hsl(206 95% 68%);
+  --chart-3: hsl(200 92% 60%);
+  --chart-4: hsl(194 98% 78%);
+  --chart-5: hsl(188 97% 87%);
+  --sidebar: hsl(220 15% 5%);
   --sidebar-foreground: hsl(0 0% 98%);
-  --sidebar-primary: hsl(221 83% 53%);
+  --sidebar-primary: hsl(213 85% 58%);
   --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 5% 24%);
+  --sidebar-accent: hsl(220 8% 22%);
   --sidebar-accent-foreground: hsl(0 0% 98%);
-  --sidebar-border: hsl(240 6% 42%);
-  --sidebar-ring: hsl(221 83% 53%);
+  --sidebar-border: hsl(220 13% 35%);
+  --sidebar-ring: hsl(213 85% 58%);
 }
 
 @layer base {
@@ -122,9 +131,32 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-variant-ligatures: common-ligatures;
+  }
+  
+  /* Professional typography scale */
+  h1 {
+    @apply text-4xl font-bold tracking-tight lg:text-5xl;
+  }
+  h2 {
+    @apply text-3xl font-semibold tracking-tight lg:text-4xl;
+  }
+  h3 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  h4 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+  h5 {
+    @apply text-lg font-medium;
+  }
+  h6 {
+    @apply text-base font-medium;
   }
 }
 
+/* Professional animations */
 @keyframes loading {
   0% {
     width: 0%;
@@ -151,20 +183,141 @@
   }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.3s ease-in-out;
+@keyframes slide-in-from-bottom {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Healthcare AI specific animations */
 @keyframes pulse-healthcare {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.7;
+    opacity: 0.8;
+    transform: scale(1.02);
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px -10px rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px -5px rgba(59, 130, 246, 0.6);
+  }
+}
+
+/* Professional utility classes */
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in-from-bottom 0.5s ease-out;
+}
+
 .animate-pulse-healthcare {
-  animation: pulse-healthcare 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulse-healthcare 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+  background-size: 468px 100%;
+  animation: shimmer 3s infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+/* Professional glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Professional scroll styling */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(220 8% 30%) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: hsl(220 8% 30%);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(220 8% 40%);
+}
+
+/* Professional focus styles */
+.focus-professional {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200;
+}
+
+/* Professional shadows */
+.shadow-professional {
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.shadow-professional-lg {
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Professional button enhancements */
+.btn-professional {
+  @apply relative overflow-hidden transition-all duration-300 ease-out;
+}
+
+.btn-professional::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.btn-professional:hover::before {
+  left: 100%;
 }
