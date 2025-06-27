@@ -34,7 +34,9 @@ export default function Chat() {
   }, [messages]);
 
   useEffect(() => {
-    if (!isLoading) return;
+    if (!isLoading) {
+      return;
+    }
 
     // Set initial random message
     setLoadingMessage(
@@ -67,13 +69,17 @@ export default function Chat() {
     scheduleNext();
 
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading) {
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
