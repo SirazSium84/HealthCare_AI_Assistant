@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import type { ChatSource } from "@/types/chat";
 import SourcesDisplay from "./sources-display";
 import { loadingMessages } from "@/lib/consts";
+import { Bot, User, Send, Loader2 } from "lucide-react";
 
 interface Message {
   id: string;
@@ -126,9 +127,14 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <header className="border-b border-border p-4">
-        <h1 className="text-xl font-semibold text-foreground">Chat</h1>
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
+      <header className="bg-gray-800/95 backdrop-blur-sm border-b border-gray-700 p-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-600 rounded-full">
+            <Bot className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-xl font-semibold text-white">Healthcare AI Chat</h1>
+        </div>
       </header>
 
       <div
@@ -136,17 +142,21 @@ export default function Chat() {
         className="flex-1 overflow-y-auto p-4 space-y-4"
       >
         {messages.length === 0 ? (
-          <div className="text-center text-muted-foreground mt-8">
-            <p>Start a conversation by typing a message below.</p>
-            <p className="text-xs mt-2">
-              Ask about vectorization, embeddings, or RAG systems!
+          <div className="text-center text-gray-300 mt-8">
+            <Bot className="h-16 w-16 text-blue-400 mx-auto mb-4 animate-pulse-healthcare" />
+            <h3 className="text-xl font-semibold text-white mb-2">
+              Welcome to Healthcare AI Chat
+            </h3>
+            <p className="text-gray-300 mb-2">Start a conversation by typing a message below.</p>
+            <p className="text-sm text-gray-400">
+              Ask about vectorization, embeddings, RAG systems, or healthcare topics!
             </p>
           </div>
         ) : (
           messages.map((message) => (
             <div key={message.id} className="space-y-2">
               <div
-                className={`flex ${
+                className={`flex gap-4 ${
                   message.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
@@ -158,24 +168,42 @@ export default function Chat() {
                       <SourcesDisplay sources={message.sources} />
                     )}
 
-                  <div
-                    className={`px-4 py-2 rounded-lg ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">
-                      {message.content}
-                    </p>
-                    <span className="text-xs opacity-70 mt-1 block">
-                      {new Date(
-                        message.createdAt || Date.now()
-                      ).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
+                  <div className="flex gap-3 items-start">
+                    {message.role === "assistant" && (
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                          <Bot className="h-4 w-4 text-white" />
+                        </div>
+                      </div>
+                    )}
+
+                    <div
+                      className={`rounded-2xl px-4 py-3 max-w-sm lg:max-w-lg ${
+                        message.role === "user"
+                          ? "bg-blue-600 text-white ml-auto"
+                          : "bg-gray-700 text-white border border-gray-600"
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">
+                        {message.content}
+                      </p>
+                      <span className="text-xs opacity-70 mt-2 block">
+                        {new Date(
+                          message.createdAt || Date.now()
+                        ).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+
+                    {message.role === "user" && (
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-gray-700 border border-gray-600 rounded-full flex items-center justify-center">
+                          <User className="h-4 w-4 text-blue-400" />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -185,15 +213,13 @@ export default function Chat() {
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-muted max-w-md lg:max-w-2xl px-4 py-3 rounded-lg">
+            <div className="bg-gray-700 border border-gray-600 max-w-md lg:max-w-2xl px-4 py-3 rounded-2xl">
               <div className="flex items-center gap-3">
                 {/* Animated AI icon */}
                 <div className="relative w-8 h-8">
-                  <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
-                  <div className="relative flex items-center justify-center w-8 h-8 bg-primary/10 rounded-full">
-                    <span className="text-primary text-sm animate-pulse">
-                      🤖
-                    </span>
+                  <div className="absolute inset-0 bg-blue-600/20 rounded-full animate-ping"></div>
+                  <div className="relative flex items-center justify-center w-8 h-8 bg-blue-600/10 rounded-full">
+                    <Bot className="h-4 w-4 text-blue-400 animate-pulse" />
                   </div>
                 </div>
 
@@ -202,20 +228,20 @@ export default function Chat() {
                   <div className="flex items-center gap-2">
                     <span
                       key={loadingMessage}
-                      className="text-sm text-muted-foreground animate-fade-in"
+                      className="text-sm text-gray-300 animate-fade-in"
                     >
                       {loadingMessage}
                     </span>
                     <div className="flex gap-0.5">
-                      <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                      <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                      <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce"></span>
+                      <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                      <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                      <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"></span>
                     </div>
                   </div>
 
                   {/* Progress bar */}
-                  <div className="mt-2 h-1 bg-muted-foreground/20 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary/50 rounded-full animate-[loading_1.5s_ease-in-out_infinite]"></div>
+                  <div className="mt-2 h-1 bg-gray-600 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-400 rounded-full animate-[loading_1.5s_ease-in-out_infinite]"></div>
                   </div>
                 </div>
               </div>
@@ -227,22 +253,26 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="border-t border-border p-4">
+      <form onSubmit={handleSubmit} className="border-t border-gray-700 p-4 bg-gray-800/50">
         <div className="flex space-x-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 px-3 py-2 bg-input border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
+            className="flex-1 px-3 py-2 bg-gray-800 border border-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder:text-gray-400"
             disabled={isLoading}
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+            className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
           >
-            Send
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </button>
         </div>
       </form>
