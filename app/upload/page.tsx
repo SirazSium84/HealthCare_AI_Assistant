@@ -19,7 +19,9 @@ export default function DocumentUpload() {
   const [serverStatus, setServerStatus] = useState('')
   
   const handleUpload = async () => {
-    if (!file) return
+    if (!file) {
+      return
+    }
     
     setUploading(true)
     setStatus(`Processing document for ${selectedPlatform}...`)
@@ -51,7 +53,9 @@ export default function DocumentUpload() {
   }
 
   const testSearch = async () => {
-    if (!testQuery.trim()) return
+    if (!testQuery.trim()) {
+      return
+    }
     
     setTesting(true)
     try {
@@ -72,7 +76,9 @@ export default function DocumentUpload() {
   }
 
   const testChat = async () => {
-    if (!chatQuery.trim()) return
+    if (!chatQuery.trim()) {
+      return
+    }
     
     setChatting(true)
     setChatResponse('🤔 Thinking...')

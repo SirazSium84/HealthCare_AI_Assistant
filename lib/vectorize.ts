@@ -123,7 +123,7 @@ export class VectorizeService {
       }
       
       const uploadData = await uploadUrlResponse.json();
-      const uploadUrl = uploadData.uploadUrl;
+      const {uploadUrl} = uploadData;
       
       console.log('✅ Step 1: Upload URL received');
       

@@ -30,9 +30,9 @@ export async function performRetrieval(query: string): Promise<RetrievalResult> 
       const sources: ChatSource[] = pineconeResults.map((result, index) => ({
         id: result.id || `pinecone-${index}`,
         title: result.filename || result.source_display_name || `Pinecone Document ${index + 1}`,
-        content: result.text || '',
-        score: result.score || 0,
-        url: undefined
+        snippet: result.text || '',
+        url: result.url || '',
+        similarity: result.score || 0
       }));
       
       return {
