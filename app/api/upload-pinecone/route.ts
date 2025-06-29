@@ -3,7 +3,7 @@ import { PineconeService } from '@/lib/pinecone'
 
 // Configure route segment for larger body size
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 120 // Increased to 2 minutes for large documents
 
 // Helper function to extract text from file
 async function extractTextFromFile(file: File): Promise<string> {
@@ -20,7 +20,7 @@ async function extractTextFromFile(file: File): Promise<string> {
         const buffer = Buffer.from(arrayBuffer)
         
         const pdfData = await pdfParse(buffer)
-        const text = pdfData.text
+        const {text} = pdfData
         
         console.log(`📄 Extracted ${text.length} characters from PDF`)
         console.log(`📊 PDF info: ${pdfData.numpages} pages`)
@@ -35,12 +35,10 @@ async function extractTextFromFile(file: File): Promise<string> {
     } else if (file.type.includes('word') || file.name.endsWith('.docx')) {
       throw new Error('DOCX parsing not implemented yet. Please use .txt files for now.')
     } else if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-      const text = await file.text()
-      return text
+      return await file.text();
     } else {
       // Try to read as text anyway
-      const text = await file.text()
-      return text
+      return await file.text();
     }
   } catch (error) {
     console.error('Text extraction error:', error)
@@ -97,6 +95,8 @@ function chunkText(text: string, chunkSize: number = 1000): any[] {
 }
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now()
+  
   try {
     console.log('📁 Processing file upload request')
     
@@ -115,6 +115,7 @@ export async function POST(req: NextRequest) {
     console.log(`📁 Processing file: ${file.name} (${file.size} bytes, ${file.type})`)
     
     // 1. Extract text from file
+    console.log('⏳ Step 1/3: Extracting text from file...')
     const text = await extractTextFromFile(file)
     console.log(`📄 Extracted ${text.length} characters from ${file.name}`)
     
@@ -123,25 +124,48 @@ export async function POST(req: NextRequest) {
     }
     
     // 2. Chunk the text
+    console.log('⏳ Step 2/3: Chunking text...')
     const chunks = chunkText(text)
     console.log(`📝 Created ${chunks.length} chunks`)
     
+    // Log estimated processing time
+    const estimatedTime = Math.ceil(chunks.length / 20) * 2 // Rough estimate: 2 seconds per batch of 20
+    console.log(`⏰ Estimated processing time: ~${estimatedTime} seconds for ${chunks.length} chunks`)
+    
     // 3. Upload to Pinecone
+    console.log('⏳ Step 3/3: Uploading to Pinecone...')
     const pineconeService = new PineconeService()
     await pineconeService.uploadDocument(chunks, file.name)
     
-    console.log(`✅ Successfully uploaded "${file.name}" to Pinecone`)
+    const totalTime = Math.round((Date.now() - startTime) / 1000)
+    console.log(`✅ Successfully uploaded "${file.name}" to Pinecone in ${totalTime} seconds`)
     
     return Response.json({ 
       message: `Successfully uploaded ${file.name}`,
       chunks: chunks.length,
-      characters: text.length
+      characters: text.length,
+      processingTime: totalTime
     })
     
   } catch (error: any) {
-    console.error('Upload error:', error)
+    const totalTime = Math.round((Date.now() - startTime) / 1000)
+    console.error(`Upload error after ${totalTime} seconds:`, error)
+    
+    // Provide more specific error messages
+    let errorMessage = 'Upload failed'
+    if (error.message.includes('timeout')) {
+      errorMessage = 'Upload timed out. Please try with a smaller file or contact support.'
+    } else if (error.message.includes('embedding')) {
+      errorMessage = 'Failed to generate embeddings. Please try again.'
+    } else if (error.message.includes('Pinecone')) {
+      errorMessage = 'Failed to upload to vector database. Please try again.'
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+    
     return Response.json({ 
-      error: error.message || 'Upload failed' 
+      error: errorMessage,
+      processingTime: totalTime
     }, { status: 500 })
   }
 } 
