@@ -1,8 +1,7 @@
 import { ToolInvocation, streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
-import { performRetrieval } from '@/lib/retrieval';
-import { searchMedicalTestCost } from '@/lib/google-search';
+import { HealthcareMcpClient } from '@/lib/mcp-client';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -12,6 +11,11 @@ interface Message {
 
 export async function POST(req: Request) {
   const { messages }: { messages: Message[] } = await req.json();
+  
+  // Create MCP client with the correct base URL for server-side usage
+  const url = new URL(req.url);
+  const baseUrl = `${url.protocol}//${url.host}`;
+  const mcpClient = new HealthcareMcpClient(baseUrl);
 
   const result = streamText({
     model: openai('gpt-4o'),
@@ -68,12 +72,19 @@ Be proactive in using the appropriate tool based on the user's question type. Do
           query: z.string().describe('The search query to find relevant documents'),
         }),
         execute: async ({ query }) => {
-          console.log(`🔍 Searching documents for: "${query}"`);
-          const { contextDocuments, sources } = await performRetrieval(query);
-          console.log(`📄 Found ${sources.length} documents`);
-          console.log(`📝 Context length: ${contextDocuments.length} characters`);
-          console.log(`🔍 Document content preview:`, contextDocuments.substring(0, 500) + '...');
-          return `DOCUMENT SEARCH RESULTS:\n\n${contextDocuments}\n\nIMPORTANT: Base your answer ONLY on the information above. Format with proper bullet points (•), bold important terms, and NO disclaimers or hedge words.`;
+          console.log(`🔍 Calling MCP searchDocuments tool for: "${query}"`);
+          const result = await mcpClient.callTool({
+            tool: 'searchDocuments',
+            arguments: { query }
+          });
+          
+          if (result.result.success) {
+            console.log(`✅ MCP searchDocuments succeeded`);
+            return result.result.data;
+          } else {
+            console.error(`❌ MCP searchDocuments failed:`, result.result.error);
+            throw new Error(result.result.error || 'MCP searchDocuments failed');
+          }
         },
       },
       getMedicalTestCost: {
@@ -82,7 +93,19 @@ Be proactive in using the appropriate tool based on the user's question type. Do
           testName: z.string().describe('The name of the medical test or procedure to search for cost information'),
         }),
         execute: async ({ testName }) => {
-          return await searchMedicalTestCost(testName);
+          console.log(`💰 Calling MCP getMedicalTestCost tool for: "${testName}"`);
+          const result = await mcpClient.callTool({
+            tool: 'getMedicalTestCost',
+            arguments: { testName }
+          });
+          
+          if (result.result.success) {
+            console.log(`✅ MCP getMedicalTestCost succeeded`);
+            return result.result.data;
+          } else {
+            console.error(`❌ MCP getMedicalTestCost failed:`, result.result.error);
+            throw new Error(result.result.error || 'MCP getMedicalTestCost failed');
+          }
         },
       },
     },

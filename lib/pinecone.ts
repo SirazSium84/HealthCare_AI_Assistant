@@ -155,4 +155,90 @@ export class PineconeService {
       throw new Error(`Failed to get index stats: ${error.message}`);
     }
   }
+
+  async clearAllDocuments(): Promise<void> {
+    try {
+      console.log('🗑️ Clearing all documents from Pinecone...');
+      const index = this.pinecone.Index(this.indexName);
+      
+      // Check if there are any documents first
+      const stats = await this.getIndexStats();
+      if (stats.totalVectorCount === 0) {
+        console.log('ℹ️ No documents to clear - index is already empty');
+        return;
+      }
+      
+      // Delete all vectors in the index
+      await index.deleteAll();
+      
+      console.log('✅ All documents cleared from Pinecone successfully');
+    } catch (error: any) {
+      // Handle specific Pinecone errors more gracefully
+      if (error.message?.includes('404') || error.status === 404) {
+        console.log('ℹ️ No documents found to clear - index appears empty');
+        return;
+      }
+      
+      console.error("Failed to clear Pinecone documents:", error);
+      throw new Error(`Failed to clear documents: ${error.message}`);
+    }
+  }
+
+  async clearDocumentsByFilename(filename: string): Promise<void> {
+    try {
+      console.log(`🗑️ Clearing documents for file: ${filename}`);
+      const index = this.pinecone.Index(this.indexName);
+      
+      // Delete vectors by metadata filter
+      await index.deleteMany({
+        filter: {
+          filename: { $eq: filename }
+        }
+      });
+      
+      console.log(`✅ Documents for "${filename}" cleared successfully`);
+    } catch (error: any) {
+      console.error(`Failed to clear documents for ${filename}:`, error);
+      throw new Error(`Failed to clear documents for ${filename}: ${error.message}`);
+    }
+  }
+
+  async clearDocumentsByPattern(pattern: string): Promise<void> {
+    try {
+      console.log(`🗑️ Clearing documents matching pattern: ${pattern}`);
+      const index = this.pinecone.Index(this.indexName);
+      
+      // For pattern matching, we need to list and delete by IDs
+      // This is a more complex operation for patterns
+      const queryResponse = await index.query({
+        vector: new Array(1536).fill(0), // Dummy vector for listing
+        topK: 10000, // Get many results
+        includeMetadata: true,
+        filter: {
+          filename: { $regex: pattern }
+        }
+      });
+
+      if (queryResponse.matches && queryResponse.matches.length > 0) {
+        const idsToDelete = queryResponse.matches.map(match => match.id);
+        await index.deleteMany(idsToDelete);
+        console.log(`✅ Cleared ${idsToDelete.length} documents matching pattern "${pattern}"`);
+      } else {
+        console.log(`ℹ️ No documents found matching pattern "${pattern}"`);
+      }
+    } catch (error: any) {
+      console.error(`Failed to clear documents by pattern ${pattern}:`, error);
+      throw new Error(`Failed to clear documents by pattern: ${error.message}`);
+    }
+  }
+
+  async getDocumentCount(): Promise<number> {
+    try {
+      const stats = await this.getIndexStats();
+      return stats.totalVectorCount || 0;
+    } catch (error: any) {
+      console.error("Failed to get document count:", error);
+      return 0;
+    }
+  }
 } 
