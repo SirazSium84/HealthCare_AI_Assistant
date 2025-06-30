@@ -18,33 +18,54 @@ export async function POST(req: Request) {
   const baseUrl = `${url.protocol}//${url.host}`;
   const mcpClient = new HealthcareMcpClient(baseUrl);
 
-  // Discover available tools from MCP server
-  const availableTools: McpToolDefinition[] = await mcpClient.getAvailableTools();
-  console.log('🔧 Available MCP tools:', availableTools.map(t => t.name));
+  // Use static tool definitions that match our MCP server
+  console.log('🔧 Using static MCP tools: searchDocuments, getMedicalTestCost');
 
   // Convert MCP tools to AI SDK format
-  const tools: Record<string, any> = {};
-  for (const tool of availableTools) {
-    tools[tool.name] = {
-      description: tool.description,
-      parameters: convertMcpSchemaToZod(tool.inputSchema),
-      execute: async (args: any) => {
-        console.log(`🔧 Calling MCP tool: ${tool.name} with args:`, args);
+  const tools: Record<string, any> = {
+    searchDocuments: {
+      description: 'Search through vectorized documents to find relevant information based on questions regarding Health Insurance and Medical procedures',
+      parameters: z.object({
+        query: z.string().describe('The search query to find relevant documents'),
+      }),
+      execute: async ({ query }: { query: string }) => {
+        console.log(`🔧 Calling MCP tool: searchDocuments with args:`, { query });
         const result = await mcpClient.callTool({
-          tool: tool.name,
-          arguments: args
+          tool: 'searchDocuments',
+          arguments: { query }
         });
         
         if (result.result.success) {
-          console.log(`✅ MCP ${tool.name} succeeded`);
+          console.log(`✅ MCP searchDocuments succeeded`);
           return result.result.data;
         } else {
-          console.error(`❌ MCP ${tool.name} failed:`, result.result.error);
-          throw new Error(result.result.error || `MCP ${tool.name} failed`);
+          console.error(`❌ MCP searchDocuments failed:`, result.result.error);
+          throw new Error(result.result.error || 'MCP searchDocuments failed');
         }
       },
-    };
-  }
+    },
+    getMedicalTestCost: {
+      description: 'Search for cost estimates of medical tests and procedures using web search',
+      parameters: z.object({
+        testName: z.string().describe('The name of the medical test or procedure to search for cost information'),
+      }),
+      execute: async ({ testName }: { testName: string }) => {
+        console.log(`🔧 Calling MCP tool: getMedicalTestCost with args:`, { testName });
+        const result = await mcpClient.callTool({
+          tool: 'getMedicalTestCost',
+          arguments: { testName }
+        });
+        
+        if (result.result.success) {
+          console.log(`✅ MCP getMedicalTestCost succeeded`);
+          return result.result.data;
+        } else {
+          console.error(`❌ MCP getMedicalTestCost failed:`, result.result.error);
+          throw new Error(result.result.error || 'MCP getMedicalTestCost failed');
+        }
+      },
+    }
+  };
 
   const result = streamText({
     model: openai('gpt-4o'),

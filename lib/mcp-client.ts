@@ -22,7 +22,7 @@ export class HealthcareMcpClient {
   private baseUrl: string;
   private transport: string;
 
-  constructor(baseUrl: string = '', transport: string = 'http') {
+  constructor(baseUrl: string = '', transport: string = 'mcp') {
     this.baseUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
     this.transport = transport;
   }
@@ -35,16 +35,64 @@ export class HealthcareMcpClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json, text/event-stream'
         },
-        body: JSON.stringify(toolCall),
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: toolCall.tool,
+            arguments: toolCall.arguments
+          }
+        }),
       });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const result = await response.json();
-      return result;
+      const responseText = await response.text();
+      
+      // Parse Server-Sent Events format
+      const lines = responseText.trim().split('\n');
+      let mcpResult = null;
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            mcpResult = JSON.parse(line.substring(6));
+            break;
+          } catch (e) {
+            console.error('Failed to parse SSE data:', line);
+          }
+        }
+      }
+      
+      if (!mcpResult) {
+        throw new Error('No valid data found in SSE response');
+      }
+      
+      if (mcpResult.error) {
+        throw new Error(mcpResult.error.message || 'Tool execution failed');
+      }
+      
+      // Extract the actual content from the MCP result
+      let data = 'Tool executed successfully';
+      if (mcpResult.result && mcpResult.result.content && mcpResult.result.content[0]) {
+        data = mcpResult.result.content[0].text || data;
+      }
+      
+      return {
+        tool: toolCall.tool,
+        arguments: toolCall.arguments,
+        result: {
+          success: true,
+          data: data
+        },
+        timestamp: new Date().toISOString(),
+        server: 'Healthcare AI Assistant MCP Server v1.0.0'
+      };
     } catch (error: any) {
       return {
         tool: toolCall.tool,

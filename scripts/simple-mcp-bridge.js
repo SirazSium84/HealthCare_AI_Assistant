@@ -5,7 +5,7 @@
  * Correctly implements MCP protocol for Claude Desktop
  */
 
-const MCP_SERVER_URL = process.env.MCP_SERVER_URL || 'http://localhost:3000/http';
+const MCP_SERVER_URL = process.env.MCP_SERVER_URL || 'http://localhost:3000/mcp';
 
 // Simple MCP Bridge
 class SimpleMcpBridge {
@@ -22,10 +22,18 @@ class SimpleMcpBridge {
       
       const response = await fetch(this.serverUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json, text/event-stream'
+        },
         body: JSON.stringify({
-          tool: toolName,
-          arguments: args
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: toolName,
+            arguments: args
+          }
         })
       });
 
@@ -33,19 +41,35 @@ class SimpleMcpBridge {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const result = await response.json();
+      const responseText = await response.text();
       
-      if (result.result && result.result.success) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: result.result.data
-            }
-          ]
-        };
+      // Parse Server-Sent Events format
+      const lines = responseText.trim().split('\n');
+      let result = null;
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            result = JSON.parse(line.substring(6));
+            break;
+          } catch (e) {
+            console.error('Failed to parse SSE data:', line);
+          }
+        }
+      }
+      
+      if (!result) {
+        throw new Error('No valid data found in SSE response');
+      }
+      
+      if (result.error) {
+        throw new Error(result.error.message || 'Tool execution failed');
+      }
+      
+      if (result.result) {
+        return result.result;
       } else {
-        throw new Error(result.result?.error || 'Tool execution failed');
+        throw new Error('Unexpected response format');
       }
     } catch (error) {
       console.error(`❌ Tool execution failed:`, error);
