@@ -24,6 +24,16 @@ export interface McpTool {
   handler: McpToolHandler;
 }
 
+export interface McpToolDefinition {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: 'object';
+    properties: Record<string, any>;
+    required?: string[];
+  };
+}
+
 export interface McpServer {
   name: string;
   version: string;

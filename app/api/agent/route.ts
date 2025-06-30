@@ -2,6 +2,7 @@ import { ToolInvocation, streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { HealthcareMcpClient } from '@/lib/mcp-client';
+import type { McpToolDefinition } from '@/types/mcp';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -17,26 +18,42 @@ export async function POST(req: Request) {
   const baseUrl = `${url.protocol}//${url.host}`;
   const mcpClient = new HealthcareMcpClient(baseUrl);
 
+  // Discover available tools from MCP server
+  const availableTools: McpToolDefinition[] = await mcpClient.getAvailableTools();
+  console.log('🔧 Available MCP tools:', availableTools.map(t => t.name));
+
+  // Convert MCP tools to AI SDK format
+  const tools: Record<string, any> = {};
+  for (const tool of availableTools) {
+    tools[tool.name] = {
+      description: tool.description,
+      parameters: convertMcpSchemaToZod(tool.inputSchema),
+      execute: async (args: any) => {
+        console.log(`🔧 Calling MCP tool: ${tool.name} with args:`, args);
+        const result = await mcpClient.callTool({
+          tool: tool.name,
+          arguments: args
+        });
+        
+        if (result.result.success) {
+          console.log(`✅ MCP ${tool.name} succeeded`);
+          return result.result.data;
+        } else {
+          console.error(`❌ MCP ${tool.name} failed:`, result.result.error);
+          throw new Error(result.result.error || `MCP ${tool.name} failed`);
+        }
+      },
+    };
+  }
+
   const result = streamText({
     model: openai('gpt-4o'),
-    system: `You are a helpful AI assistant specializing in health insurance and medical information. You have access to two tools that you should use strategically:
+    system: `You are a helpful AI assistant specializing in health insurance and medical information. 
 
-**Tool Usage Rules:**
-1. **getMedicalTestCost**: Use ONLY when the user specifically asks for cost estimates, pricing, or "how much does X cost"
-2. **searchDocuments**: Use for ALL other questions about health insurance, medical procedures, coverage, benefits, etc.
-
-**When to use getMedicalTestCost:**
-- "What does an MRI cost?"
-- "How much is a blood test?"
-- "What's the price of a colonoscopy?"
-- Any question specifically asking for cost/price estimates
-
-**When to use searchDocuments:**
-- Health insurance coverage questions
-- Medical procedure information
-- Benefits and policy questions
-- Treatment recommendations
-- ALL non-pricing healthcare questions
+You have access to healthcare tools that can:
+- Search through vectorized healthcare documents 
+- Get medical test cost estimates
+- And other healthcare-specific functions
 
 **CRITICAL: When you receive document search results, you MUST:**
 1. Extract and state EXACT percentages, dollar amounts, and specific coverage details from the documents
@@ -54,7 +71,7 @@ export async function POST(req: Request) {
 - NO disclaimers about "check with your provider" - just give the facts
 - Use clean line breaks and spacing for readability
 
-Be proactive in using the appropriate tool based on the user's question type. Do not use both tools unless the user specifically asks for both cost AND coverage information.`,
+Be proactive in using the appropriate tool based on the user's question type.`,
     messages,
     onStepFinish: (stepResult) => {
       if (stepResult.toolCalls && stepResult.toolCalls.length > 0) {
@@ -65,51 +82,29 @@ Be proactive in using the appropriate tool based on the user's question type. Do
         console.log('');
       }
     },
-    tools: {
-      searchDocuments: {
-        description: 'Search through vectorized documents to find relevant information based on questions regarding Health Insurance and Medical procedures',
-        parameters: z.object({
-          query: z.string().describe('The search query to find relevant documents'),
-        }),
-        execute: async ({ query }) => {
-          console.log(`🔍 Calling MCP searchDocuments tool for: "${query}"`);
-          const result = await mcpClient.callTool({
-            tool: 'searchDocuments',
-            arguments: { query }
-          });
-          
-          if (result.result.success) {
-            console.log(`✅ MCP searchDocuments succeeded`);
-            return result.result.data;
-          } else {
-            console.error(`❌ MCP searchDocuments failed:`, result.result.error);
-            throw new Error(result.result.error || 'MCP searchDocuments failed');
-          }
-        },
-      },
-      getMedicalTestCost: {
-        description: 'Search for cost estimates of medical tests and procedures using web search',
-        parameters: z.object({
-          testName: z.string().describe('The name of the medical test or procedure to search for cost information'),
-        }),
-        execute: async ({ testName }) => {
-          console.log(`💰 Calling MCP getMedicalTestCost tool for: "${testName}"`);
-          const result = await mcpClient.callTool({
-            tool: 'getMedicalTestCost',
-            arguments: { testName }
-          });
-          
-          if (result.result.success) {
-            console.log(`✅ MCP getMedicalTestCost succeeded`);
-            return result.result.data;
-          } else {
-            console.error(`❌ MCP getMedicalTestCost failed:`, result.result.error);
-            throw new Error(result.result.error || 'MCP getMedicalTestCost failed');
-          }
-        },
-      },
-    },
+    tools,
   });
 
   return result.toDataStreamResponse();
+}
+
+// Helper function to convert MCP input schema to Zod schema
+function convertMcpSchemaToZod(mcpSchema: any): any {
+  const zodSchema: Record<string, any> = {};
+  
+  if (mcpSchema.properties) {
+    for (const [key, prop] of Object.entries(mcpSchema.properties as Record<string, any>)) {
+      if (prop.type === 'string') {
+        zodSchema[key] = z.string().describe(prop.description || '');
+      } else if (prop.type === 'number') {
+        zodSchema[key] = z.number().describe(prop.description || '');
+      } else if (prop.type === 'boolean') {
+        zodSchema[key] = z.boolean().describe(prop.description || '');
+      } else {
+        zodSchema[key] = z.any().describe(prop.description || '');
+      }
+    }
+  }
+  
+  return z.object(zodSchema);
 }

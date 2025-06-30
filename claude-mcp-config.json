@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+        "healthcare-ai-assistant": {
+            "command": "node",
+            "args": [
+                "./scripts/claude-mcp-bridge.js"
+            ],
+            "env": {
+                "MCP_SERVER_URL": "http://localhost:3000/http"
+            }
+        }
+    }
+}

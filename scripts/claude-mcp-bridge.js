@@ -7,7 +7,7 @@
  * by translating between Claude's MCP protocol and your HTTP API.
  */
 
-const MCP_SERVER_URL = process.env.MCP_SERVER_URL || 'http://localhost:3000/http';
+const MCP_SERVER_URL = process.env.MCP_SERVER_URL || 'http://localhost:3001/http';
 
 // Healthcare MCP Bridge Class
 class HealthcareMcpBridge {
@@ -61,130 +61,30 @@ class HealthcareMcpBridge {
   formatToolResult(toolName, data) {
     // Format the results in a user-friendly way
     switch (toolName) {
-      case 'list_documents':
-        return `📄 **Healthcare Documents Summary**
+      case 'searchDocuments':
+        return `📄 **Healthcare Document Search Results**
 
-Total Documents: ${data.totalDocuments}
-Document Type Filter: ${data.documentType}
-Database Status: Active
+**Search Query**: ${data.query || 'Health insurance documents'}
 
-Index Statistics:
-${JSON.stringify(data.indexStats, null, 2)}
+**📋 Document Information Found**:
+${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}
 
-✅ Document listing completed successfully.`;
+✅ Document search completed successfully.`;
 
-      case 'analyze_insurance_info':
-        const info = data.extractedInformation;
-        const analysis = data.coverageAnalysis;
-        return `🔍 **Insurance Information & Coverage Analysis**
+      case 'getMedicalTestCost':
+        return `💰 **Medical Test Cost Information**
 
-**Query**: "${data.query}"
+**Test/Procedure**: ${data.testName || 'Medical procedure'}
 
-**📝 Extracted Information**:
-- Policy Numbers: ${info.policyNumbers?.length || 0} found
-- Dollar Amounts: ${info.amounts?.length || 0} found
-- Dates: ${info.dates?.length || 0} found  
-- Percentages: ${info.percentages?.length || 0} found
-- Phone Numbers: ${info.phoneNumbers?.length || 0} found
+**💵 Cost Information**:
+${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}
 
-**🛡️ Coverage Analysis**:
-- Coverage Type: ${analysis.coverageType}
-- Deductibles Found: ${analysis.deductibles.length}
-- Copays Found: ${analysis.copays.length}  
-- Coinsurance Rates: ${analysis.coinsurance.length}
-- Out-of-Pocket Maximums: ${analysis.outOfPocketMax.length}
-- Network Providers: ${analysis.networkProviders ? 'Yes' : 'No'}
-- Preventive Care: ${analysis.preventiveCare ? 'Covered' : 'Check details'}
-
-**Key Details**:
-${Object.entries(info).map(([key, values]) => 
-  values.length > 0 ? `- ${key}: ${values.slice(0, 3).join(', ')}${values.length > 3 ? '...' : ''}` : ''
-).filter(Boolean).join('\n')}
-
-**Summary**: ${data.summary}
-
-✅ Insurance analysis completed successfully.`;
-
-      case 'get_cost_intelligence':
-        return `💰 **Healthcare Cost Intelligence**
-
-**Procedure**: ${data.procedure}
-**Location**: ${data.location}
-
-**Cost Information**:
-${data.costInformation}
-
-**💡 Cost-Saving Tips**:
-${data.costSavingTips.map(tip => `• ${tip}`).join('\n')}
-
-**📈 Additional Factors**:
-${data.additionalFactors.map(factor => `• ${factor}`).join('\n')}
-
-**Summary**: ${data.summary}
-
-✅ Cost intelligence analysis completed successfully.`;
-
-      case 'manage_session':
-        if (data.sessionInfo) {
-          const session = data.sessionInfo;
-          return `⚙️ **Session Management**
-
-**📋 Session Information**:
-- Session ID: ${session.sessionId}
-- Document Count: ${session.documentCount}
-- Uptime: ${Math.round(session.uptime / 1000)}s
-- Clear on Start: ${session.config.clearOnStart}
-- Clear Method: ${session.config.clearMethod}
-
-**Message**: ${data.message}
-
-✅ Session management completed successfully.`;
-        } else {
-          return `⚙️ **Session Management**
-
-**Message**: ${data.message}
-${data.clearedAt ? `**Cleared At**: ${data.clearedAt}` : ''}
-
-✅ Session management completed successfully.`;
-        }
-
-      case 'calculate_out_of_pocket':
-        return `💰 **Out-of-Pocket Cost Calculation**
-
-**Scenario**: ${data.scenario}
-**Services**: ${data.services.join(', ')}
-
-**Estimated Costs**:
-- Deductible: ${data.estimatedCosts.deductible}
-- Coinsurance: ${data.estimatedCosts.coinsurance}  
-- Total Estimate: ${data.estimatedCosts.estimatedTotal}
-
-**💡 Recommendations**:
-${data.recommendations.map(rec => `• ${rec}`).join('\n')}
-
-✅ Cost calculation completed successfully.`;
-
-      case 'get_enhanced_procedure_costs':
-        return `💲 **Medical Procedure Cost Analysis**
-
-**Procedure**: ${data.procedure}
-**Location**: ${data.location}
-
-**Cost Information**:
-${data.costInformation}
-
-**💡 Cost-Saving Tips**:
-${data.costSavingTips.map(tip => `• ${tip}`).join('\n')}
-
-**📊 Additional Factors**:
-${data.additionalFactors.map(factor => `• ${factor}`).join('\n')}
-
-✅ Procedure cost lookup completed successfully.`;
+✅ Cost lookup completed successfully.`;
 
       default:
         return `📋 **Tool Result**: ${toolName}
 
-${JSON.stringify(data, null, 2)}
+${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}
 
 ✅ Tool execution completed successfully.`;
     }
@@ -194,62 +94,34 @@ ${JSON.stringify(data, null, 2)}
 // Initialize the bridge
 const bridge = new HealthcareMcpBridge();
 
-// Define available healthcare tools for Claude - Ultra Simplified (3 tools)
+// Define available healthcare tools for Claude - Match actual server tools
 const HEALTHCARE_TOOLS = [
   {
-    name: "analyze_insurance_info",
-    description: "Extract key information and analyze comprehensive insurance coverage details in one powerful tool",
+    name: "searchDocuments",
+    description: "Search through vectorized documents to find relevant information based on questions regarding Health Insurance and Medical procedures",
     inputSchema: {
       type: "object",
       properties: {
         query: {
           type: "string",
-          description: "Information to extract or analyze (e.g., 'policy details', 'coverage benefits', 'deductible amounts')"
-        },
-        coverageType: {
-          type: "string",
-          enum: ["all", "medical", "dental", "vision", "prescription"],
-          description: "Type of coverage to analyze (default: all)"
+          description: "The search query to find relevant documents (e.g., 'health insurance coverage', 'deductible information')"
         }
       },
       required: ["query"]
     }
   },
   {
-    name: "get_cost_intelligence",
-    description: "Get real-world pricing intelligence for medical procedures",
+    name: "getMedicalTestCost",
+    description: "Search for cost estimates of medical tests and procedures using web search",
     inputSchema: {
       type: "object",
       properties: {
-        procedure: {
+        testName: {
           type: "string",
-          description: "Medical procedure or test name (e.g., 'MRI brain', 'colonoscopy', 'blood test')"
-        },
-        location: {
-          type: "string",
-          description: "Geographic location for regional pricing (optional)"
+          description: "The name of the medical test or procedure to search for cost information (e.g., 'MRI brain', 'colonoscopy')"
         }
       },
-      required: ["procedure"]
-    }
-  },
-  {
-    name: "manage_session",
-    description: "Manage healthcare session documents and workspace settings",
-    inputSchema: {
-      type: "object",
-      properties: {
-        action: {
-          type: "string",
-          enum: ["info", "clear", "initialize"],
-          description: "Session management action to perform"
-        },
-        config: {
-          type: "object",
-          description: "Optional session configuration for initialize action"
-        }
-      },
-      required: ["action"]
+      required: ["testName"]
     }
   }
 ];
@@ -295,14 +167,18 @@ process.stdin.on('data', async (data) => {
       case 'tools/call':
         try {
           const { name, arguments: args } = message.params;
-          const result = await bridge.callHealthcareTool(name, args || {});
+          console.error(`🔧 Tool call requested: ${name} with args:`, args);
+          
+          // Call the healthcare tool directly and get the raw data
+          const toolResult = await bridge.callHealthcareTool(name, args || {});
           
           response = {
             jsonrpc: "2.0",
             id: message.id,
-            result
+            result: toolResult
           };
         } catch (error) {
+          console.error(`❌ Tool call failed:`, error);
           response = {
             jsonrpc: "2.0",
             id: message.id,
@@ -331,9 +207,18 @@ process.stdin.on('data', async (data) => {
   } catch (error) {
     console.error('❌ Bridge error:', error);
     
+    // Try to extract message ID if possible, otherwise use null
+    let messageId = null;
+    try {
+      const partialMessage = JSON.parse(data.toString().trim());
+      messageId = partialMessage.id || null;
+    } catch (e) {
+      // If we can't parse at all, use null
+    }
+    
     const errorResponse = {
       jsonrpc: "2.0",
-      id: null,
+      id: messageId,
       error: {
         code: -32700,
         message: `Parse error: ${error.message}`
@@ -356,5 +241,5 @@ process.on('SIGTERM', () => {
 });
 
 console.error('🏥 Healthcare AI Assistant MCP Bridge ready for Claude Desktop!');
-console.error('🔗 Available tools (3): analyze_insurance_info, get_cost_intelligence, manage_session');
-console.error('✨ Claude can now access your healthcare documents with ultra-simplified, powerful tools!');
+console.error('🔗 Available tools (2): searchDocuments, getMedicalTestCost');
+console.error('✨ Claude can now access your healthcare documents and cost intelligence!');

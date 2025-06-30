@@ -1,5 +1,5 @@
 // Frontend MCP Client for Healthcare AI Assistant
-import type { HealthcareMcpResult } from '@/types/mcp';
+import type { HealthcareMcpResult, McpToolDefinition } from '@/types/mcp';
 
 export interface McpToolCall {
   tool: string;
@@ -77,6 +77,47 @@ export class HealthcareMcpClient {
       return await response.json();
     } catch (error: any) {
       throw new Error(`Failed to get server info: ${error.message}`);
+    }
+  }
+
+  async getAvailableTools(): Promise<McpToolDefinition[]> {
+    try {
+      const serverInfo = await this.getServerInfo();
+      
+      // For now, return the known tools from the server
+      // In a full MCP implementation, this would call the tools/list endpoint
+      return [
+        {
+          name: 'searchDocuments',
+          description: 'Search through vectorized documents to find relevant information based on questions regarding Health Insurance and Medical procedures',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              query: {
+                type: 'string',
+                description: 'The search query to find relevant documents'
+              }
+            },
+            required: ['query']
+          }
+        },
+        {
+          name: 'getMedicalTestCost',
+          description: 'Search for cost estimates of medical tests and procedures using web search',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              testName: {
+                type: 'string',
+                description: 'The name of the medical test or procedure to search for cost information'
+              }
+            },
+            required: ['testName']
+          }
+        }
+      ];
+    } catch (error: any) {
+      throw new Error(`Failed to get available tools: ${error.message}`);
     }
   }
 
