@@ -9,6 +9,8 @@ export class PineconeService {
   constructor() {
     this.pinecone = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY!,
+      // Add configuration for better reliability
+      fetchApi: fetch,
     });
     
     this.openai = new OpenAI({
@@ -29,6 +31,16 @@ export class PineconeService {
       console.log(`📝 Processing ${chunks.length} chunks`);
       
       const index = this.pinecone.Index(this.indexName);
+      
+      // Test Pinecone connection first
+      try {
+        console.log(`🔍 Testing Pinecone connection...`);
+        await index.describeIndexStats();
+        console.log(`✅ Pinecone connection verified`);
+      } catch (connectionError: any) {
+        console.error(`❌ Pinecone connection failed:`, connectionError);
+        throw new Error(`Cannot connect to Pinecone index "${this.indexName}": ${connectionError.message}`);
+      }
       
       // Generate embeddings in batches for better performance
       const vectors = [];
@@ -80,22 +92,58 @@ export class PineconeService {
       
       console.log(`📤 Uploading ${vectors.length} vectors to Pinecone...`);
       
-      // Upload vectors to Pinecone in batches
-      const pineconeUpsertBatchSize = 100; // Pinecone recommended batch size
+      // Upload vectors to Pinecone in smaller batches with retry logic
+      const pineconeUpsertBatchSize = 50; // Reduced batch size for better reliability
+      const maxRetries = 3;
+      
       for (let i = 0; i < vectors.length; i += pineconeUpsertBatchSize) {
         const batch = vectors.slice(i, i + pineconeUpsertBatchSize);
+        const batchNum = Math.floor(i/pineconeUpsertBatchSize) + 1;
+        const totalBatches = Math.ceil(vectors.length/pineconeUpsertBatchSize);
         
-        try {
-          await index.upsert(batch);
-          console.log(`✅ Uploaded Pinecone batch ${Math.floor(i/pineconeUpsertBatchSize) + 1}/${Math.ceil(vectors.length/pineconeUpsertBatchSize)}`);
-        } catch (upsertError: any) {
-          console.error(`Failed to upload batch ${Math.floor(i/pineconeUpsertBatchSize) + 1} to Pinecone:`, upsertError);
-          throw new Error(`Pinecone upsert failed: ${upsertError.message}`);
+        let retryCount = 0;
+        let success = false;
+        
+        while (!success && retryCount < maxRetries) {
+          try {
+            console.log(`📤 Uploading batch ${batchNum}/${totalBatches} (${batch.length} vectors)${retryCount > 0 ? ` - Retry ${retryCount}` : ''}`);
+            
+            // Add timeout to the upsert operation
+            const uploadPromise = index.upsert(batch);
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Pinecone upsert timeout after 30 seconds')), 30000)
+            );
+            
+            await Promise.race([uploadPromise, timeoutPromise]);
+            
+            console.log(`✅ Uploaded Pinecone batch ${batchNum}/${totalBatches}`);
+            success = true;
+            
+            // Small delay between batches to avoid overwhelming Pinecone
+            if (i + pineconeUpsertBatchSize < vectors.length) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+          } catch (upsertError: any) {
+            retryCount++;
+            console.error(`❌ Failed to upload batch ${batchNum} (attempt ${retryCount}/${maxRetries}):`, upsertError.message);
+            
+            if (retryCount >= maxRetries) {
+              throw new Error(`Pinecone upsert failed after ${maxRetries} attempts: ${upsertError.message}`);
+            }
+            
+            // Exponential backoff: wait longer between retries
+            const waitTime = Math.pow(2, retryCount) * 1000; // 2s, 4s, 8s
+            console.log(`⏳ Waiting ${waitTime/1000}s before retry...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
         }
       }
       
       console.log(`🎉 Successfully uploaded "${filename}" to Pinecone!`);
       console.log(`📊 Total vectors: ${vectors.length}`);
+      console.log(`📝 Total chunks processed: ${chunks.length}`);
+      console.log(`⏱️ Upload completed successfully`);
       
     } catch (error: any) {
       console.error("Pinecone upload error:", error);

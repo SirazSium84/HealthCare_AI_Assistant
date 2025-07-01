@@ -3,7 +3,7 @@ import { PineconeService } from '@/lib/pinecone'
 
 // Configure route segment for larger body size
 export const runtime = 'nodejs'
-export const maxDuration = 120 // Increased to 2 minutes for large documents
+export const maxDuration = 300 // Increased to 5 minutes for large documents with retries
 
 // Helper function to extract text from file
 async function extractTextFromFile(file: File): Promise<string> {

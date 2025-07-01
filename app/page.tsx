@@ -2,12 +2,11 @@
 
 import { useChat } from "ai/react"
 import { useState, useEffect, useRef } from "react"
-import { Send, FileSearch, Search, Bot, User, Loader2, Heart, Activity, Upload, File, CheckCircle, X, Home, RotateCcw, Shield, FileText, Stethoscope, Settings } from "lucide-react"
+import { Send, FileSearch, Search, Bot, User, Loader2, Heart, Activity, Upload, File, CheckCircle, X, Home, RotateCcw, Shield, FileText, Stethoscope } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
 
 
 export default function HealthInsuranceChat() {
@@ -461,18 +460,6 @@ export default function HealthInsuranceChat() {
                         <Home className="h-5 w-5" />
                       </Button>
                     )}
-                    
-                    {/* MCP Tools button */}
-                    <Link href="/mcp-tools">
-                      <Button
-                        variant="outline"
-                        className="glass border-blue-600/50 text-blue-400 hover:text-white hover:border-blue-500 rounded-xl transition-all duration-300 shadow-professional hover:shadow-professional-lg"
-                        title="Test MCP Tools"
-                      >
-                        <Settings className="h-5 w-5 mr-2" />
-                        MCP Tools
-                      </Button>
-                    </Link>
                   </div>
                   
                   <form onSubmit={handleSubmit} className="flex gap-4 flex-1">
