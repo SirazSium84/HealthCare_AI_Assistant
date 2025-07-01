@@ -2,8 +2,7 @@
 import { createMcpHandler } from "@vercel/mcp-adapter";
 import { 
   searchDocumentsTool,
-  getMedicalTestCostTool,
-  uploadDocumentTool
+  getMedicalTestCostTool 
 } from "../../tools";
 
 const handler = createMcpHandler(
@@ -22,14 +21,6 @@ const handler = createMcpHandler(
       getMedicalTestCostTool.description,
       getMedicalTestCostTool.schema.shape,
       getMedicalTestCostTool.handler
-    );
-
-    // Register Document Upload Tool
-    server.tool(
-      uploadDocumentTool.name,
-      uploadDocumentTool.description,
-      uploadDocumentTool.schema.shape,
-      uploadDocumentTool.handler
     );
   },
   {},

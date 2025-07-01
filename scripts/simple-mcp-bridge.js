@@ -5,7 +5,7 @@
  * Correctly implements MCP protocol for Claude Desktop
  */
 
-const MCP_SERVER_URL = process.env.MCP_SERVER_URL || 'https://healthcare-assistant-mcp-test.vercel.app/mcp';
+const MCP_SERVER_URL = process.env.MCP_SERVER_URL || 'http://localhost:3000/mcp';
 
 // Simple MCP Bridge
 class SimpleMcpBridge {
@@ -108,28 +108,6 @@ const TOOLS = [
         }
       },
       required: ["testName"]
-    }
-  },
-  {
-    name: "uploadDocument",
-    description: "Upload and process healthcare documents (PDF, TXT) to the vector database for future search and analysis",
-    inputSchema: {
-      type: "object",
-      properties: {
-        content: {
-          type: "string",
-          description: "Base64 encoded content of the document"
-        },
-        filename: {
-          type: "string",
-          description: "Name of the file including extension (e.g., 'insurance_policy.pdf')"
-        },
-        mimeType: {
-          type: "string",
-          description: "MIME type of the file (e.g., 'application/pdf', 'text/plain')"
-        }
-      },
-      required: ["content", "filename", "mimeType"]
     }
   }
 ];
@@ -234,4 +212,4 @@ process.on('SIGTERM', () => {
 });
 
 console.error('🚀 Simple Healthcare MCP Bridge ready for Claude Desktop!');
-console.error('🔗 Available tools: searchDocuments, getMedicalTestCost, uploadDocument'); 
+console.error('🔗 Available tools: searchDocuments, getMedicalTestCost'); 
